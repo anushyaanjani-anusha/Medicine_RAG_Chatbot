@@ -1,5 +1,5 @@
 import streamlit as st
-from medicine_engine import ask_medicine
+from rag_engine import load_base, ask_rag
 
 # Page configuration
 st.set_page_config(
@@ -8,33 +8,54 @@ st.set_page_config(
     layout="centered"
 )
 
-# Title
+# Title and description
 st.title("💊 Medicine Information Chatbot")
 
-st.caption("AI-powered Medicine Information Assistant")
+st.caption("AI-Powered Medicine Information Assistant")
 
 st.write(
     "Ask questions about medicine uses, "
     "common side effects and precautions."
 )
 
-# API key
+# Get Groq API key
 my_key = st.secrets["GROQ_API_KEY"]
+
+
+# Load medicine database
+@st.cache_resource
+def initiate_rag():
+    return load_base("medicine_docs")
+
+
+# Initialize RAG
+try:
+    index, embed_model, chunks = initiate_rag()
+    st.success("Medicine database loaded successfully!")
+
+except Exception as e:
+    st.error(f"Error loading medicine database: {e}")
+    st.stop()
+
 
 # Initialize chat history
 if "chat_hist" not in st.session_state:
     st.session_state.chat_hist = []
 
-# Display previous messages
+
+# Display previous chat messages
 for qa in st.session_state.chat_hist:
     with st.chat_message(qa["role"]):
         st.write(qa["content"])
 
-# User question
+
+# User input
 question = st.chat_input(
-    "Ask about a medicine..."
+    "Ask anything about medicines..."
 )
 
+
+# Generate answer
 if question:
 
     st.session_state.chat_hist.append(
@@ -46,12 +67,15 @@ if question:
 
     with st.chat_message("assistant"):
 
-        with st.spinner("Getting medicine information..."):
+        with st.spinner("Searching medicine information..."):
 
             try:
-                answer = ask_medicine(
+                answer = ask_rag(
                     question,
-                    my_key
+                    embed_model,
+                    chunks,
+                    index,
+                    api_key=my_key
                 )
 
                 st.write(answer)
@@ -64,16 +88,18 @@ if question:
                 )
 
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Error generating answer: {e}")
+
 
 # Clear chat
 if st.button("Clear Chat"):
     st.session_state.chat_hist = []
     st.rerun()
 
-# Disclaimer
+
+# Medical disclaimer
 st.warning(
     "This chatbot provides educational information only. "
-    "It is not a substitute for professional medical advice. "
-    "Consult a doctor or pharmacist for medicine-related decisions."
+    "It does not replace professional medical advice. "
+    "Consult a doctor or pharmacist for personal medicine-related decisions."
 )

@@ -5,8 +5,6 @@ from pypdf import PdfReader
 from sentence_transformers import SentenceTransformer
 from pathlib import Path
 
-
-# 1. Load PDF files
 def load_pdf(pdf_path):
 
     reader = PdfReader(str(pdf_path))
@@ -23,8 +21,6 @@ def load_pdf(pdf_path):
 
     return full_text
 
-
-# 2. Create chunks
 def create_chunks(full_text, chunksize=500, overlap=100):
 
     chunks = []
@@ -43,8 +39,6 @@ def create_chunks(full_text, chunksize=500, overlap=100):
 
     return chunks
 
-
-# 3. Build vectors
 def build_vectors(chunks, model_name="all-MiniLM-L6-v2"):
 
     if not chunks:
@@ -72,8 +66,6 @@ def build_vectors(chunks, model_name="all-MiniLM-L6-v2"):
 
     return index, embed_model
 
-
-# 4. Load medicine database
 def load_base(pdf_path="medicine_docs"):
 
     chunks = []
@@ -97,8 +89,6 @@ def load_base(pdf_path="medicine_docs"):
 
     return index, embed_model, chunks
 
-
-# 5. Retrieve relevant content
 def retrieve_content(
     question,
     embed_model,
@@ -139,8 +129,6 @@ def retrieve_content(
 
     return background
 
-
-# 6. Ask medicine RAG
 def ask_rag(
     question,
     embed_model,

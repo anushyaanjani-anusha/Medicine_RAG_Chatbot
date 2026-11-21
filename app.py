@@ -25,7 +25,7 @@ my_key = st.secrets["GROQ_API_KEY"]
 # Load medicine database
 @st.cache_resource
 def initiate_rag():
-    return load_base("medicine_docs")
+    return load_base(".")
 
 
 # Initialize RAG
